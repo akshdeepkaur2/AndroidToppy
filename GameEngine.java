@@ -1,11 +1,13 @@
-package com.akshdeep.tappyproject2;
+package com.akshdeep.tappyproject;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Point;
 import android.graphics.Rect;
-import android.support.constraint.solver.widgets.Rectangle;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -43,14 +45,22 @@ public class GameEngine extends SurfaceView implements Runnable {
     // ----------------------------
     // ## SPRITES
     // ----------------------------
-    Player player;
-    Enemy enemy;
+
+    // Player variables
+    Bitmap playerImage;
+    Rect playerHitbox;
+    Point playerPos;    // (left,top) of the player
+
+    // Enemy variables
+    Bitmap enemyImage;
+    Rect enemyHitbox;
+
 
     // ----------------------------
     // ## GAME STATS
     // ----------------------------
     int score = 0;
-    int lives = 5;
+    int lives = 3;
 
     public GameEngine(Context context, int w, int h) {
         super(context);
@@ -66,9 +76,40 @@ public class GameEngine extends SurfaceView implements Runnable {
         this.printScreenInfo();
 
         // @TODO: Add your sprites
-        this.spawnPlayer();
-        this.spawnEnemyShips();
         // @TODO: Any other game setup
+
+        // ----------------
+        // PLAYER SETUP
+        // ----------------
+        this.playerImage = BitmapFactory.decodeResource(context.getResources(), R.drawable.player_ship);
+
+        // setup the initial position of player
+        this.playerPos = new Point();
+        this.playerPos.x = 100;
+        this.playerPos.y = 120;
+
+        // setup the hitbox
+        this.playerHitbox = new Rect(
+                this.playerPos.x,
+                this.playerPos.y,
+                this.playerPos.x+this.playerImage.getWidth(),
+                this.playerPos.y + playerImage.getHeight());
+
+        // ----------------
+        // ENEMEY SETUP
+        // ----------------
+        this.enemyImage = BitmapFactory.decodeResource(context.getResources(), R.drawable.alien_ship2);
+
+        // version 1 - we use static numbers because the enemy is NOT moving.
+        this.enemyHitbox = new Rect(
+                this.screenWidth - 500,
+                120,
+                this.screenWidth - 500 + this.enemyImage.getWidth(),
+                120 + this.enemyImage.getHeight()
+        );
+
+
+
 
     }
 
@@ -79,16 +120,13 @@ public class GameEngine extends SurfaceView implements Runnable {
     }
 
     private void spawnPlayer() {
-        // put player in middle of screen --> you may have to adjust the Y position
-        // depending on your device / emulator
-        player = new Player(this.getContext(), 100, (this.screenHeight-300) / 2);
-
+        //@TODO: Start the player at the left side of screen
     }
     private void spawnEnemyShips() {
         Random random = new Random();
 
         //@TODO: Place the enemies in a random location
-        enemy = new Enemy(this.getContext(), 1400, 100);
+
     }
 
     // ------------------------------
@@ -124,29 +162,45 @@ public class GameEngine extends SurfaceView implements Runnable {
     // GAME ENGINE FUNCTIONS
     // - update, draw, setFPS
     // ------------------------------
+    final int PLAYER_SPEED = 30;
+    boolean gameOver = false;
 
     public void updatePositions() {
         // @TODO: Update position of player
-        player.updatePlayerPosition();
+        // 1. move the player
+        this.playerPos.x = this.playerPos.x + PLAYER_SPEED;
+        // 2. move the hitbox
+        this.playerHitbox.left = this.playerHitbox.left + PLAYER_SPEED;
+        this.playerHitbox.right = this.playerHitbox.right + PLAYER_SPEED;
+
         // @TODO: Update position of enemy ships
-        enemy.updateEnemyPosition();
 
-        // @TODO: Collision detection between enemy and wall
-        if (enemy.getXPosition() <= 0) {
-
-            //reset the enemy's starting position to right side of screen
-            // you may need to adjust this number according to your device/emulator
-            enemy.setXPosition(this.screenWidth);
-        }
 
         // @TODO: Collision detection between player and enemy
-        if (player.getHitbox().intersect(enemy.getHitbox())) {
-            // reduce lives
-            lives--;
-            // reset player to original position
-            player.setXPosition(100);
-            player.setYPosition((this.screenHeight-300) / 2);
+        if (playerHitbox.intersect(this.enemyHitbox)) {
+            Log.d(TAG, "COLLISION!!!!!");
+            this.lives = this.lives - 1;
+            Log.d(TAG, "Lives remaining: " + this.lives);
+
+
+            // decide if you should be game over:
+            if (this.lives == 0) {
+                this.gameOver = true;
+                return;
+            }
+
+
+            // restart player from starting position
+            this.playerPos.x = 100;
+            this.playerPos.y = 120;
+
+            // restart hitbox
+            this.playerHitbox.left = this.playerPos.x;
+            this.playerHitbox.top = this.playerPos.y;
+            this.playerHitbox.right = this.playerPos.x+this.playerImage.getWidth();
+            this.playerHitbox.bottom = this.playerPos.y + playerImage.getHeight();
         }
+
     }
 
     public void redrawSprites() {
@@ -161,26 +215,52 @@ public class GameEngine extends SurfaceView implements Runnable {
 
 
             //@TODO: Draw the player
-            canvas.drawBitmap(this.player.getBitmap(), this.player.getXPosition(), this.player.getYPosition(), paintbrush);
+            canvas.drawBitmap(playerImage, this.playerPos.x, this.playerPos.y, paintbrush);
 
             //@TODO: Draw the enemy
-            canvas.drawBitmap(this.enemy.getBitmap(), this.enemy.getXPosition(), this.enemy.getYPosition(), paintbrush);
+            canvas.drawBitmap(enemyImage, this.screenWidth - 500, 120, paintbrush);
 
-
-            // Show the hitboxes on player and enemy
+            // DRAW THE PLAYER HITBOX
+            // ------------------------
+            // 1. change the paintbrush settings so we can see the hitbox
             paintbrush.setColor(Color.BLUE);
             paintbrush.setStyle(Paint.Style.STROKE);
             paintbrush.setStrokeWidth(5);
-            Rect playerHitbox = player.getHitbox();
-            canvas.drawRect(playerHitbox.left, playerHitbox.top, playerHitbox.right, playerHitbox.bottom, paintbrush);
 
-            Rect enemyHitbox = enemy.getHitbox();
-            canvas.drawRect(enemyHitbox.left, enemyHitbox.top, enemyHitbox.right, enemyHitbox.bottom, paintbrush);
+            // 2. draw the hitbox
+            canvas.drawRect(this.playerHitbox.left,
+                    this.playerHitbox.top,
+                    this.playerHitbox.right,
+                    this.playerHitbox.bottom,
+                    paintbrush
+            );
 
-            // draw game stats
-            paintbrush.setTextSize(60);
-            paintbrush.setColor(Color.BLACK);
-            canvas.drawText("Lives remaining: " + lives, 100, 800, paintbrush);
+            // Draw enemy hitbox
+            paintbrush.setColor(Color.RED);
+            canvas.drawRect(this.enemyHitbox.left,
+                    this.enemyHitbox.top,
+                    this.enemyHitbox.right,
+                    this.enemyHitbox.bottom,
+                    paintbrush
+            );
+
+
+            // DRAW GAME STATS
+
+            paintbrush.setTextSize(100);     // set font size
+            paintbrush.setStrokeWidth(5);  // make text narrow
+            canvas.drawText("Lives: " + this.lives, 50, 100, paintbrush);
+
+            if (gameOver == true) {
+                canvas.drawText("GAME OVER!", 50, 200, paintbrush);
+            }
+
+
+
+
+
+
+
 
             //----------------
             this.holder.unlockCanvasAndPost(canvas);
@@ -189,7 +269,7 @@ public class GameEngine extends SurfaceView implements Runnable {
 
     public void setFPS() {
         try {
-            gameThread.sleep(50);
+            gameThread.sleep(120);
         }
         catch (Exception e) {
 
@@ -205,12 +285,10 @@ public class GameEngine extends SurfaceView implements Runnable {
         int userAction = event.getActionMasked();
         //@TODO: What should happen when person touches the screen?
         if (userAction == MotionEvent.ACTION_DOWN) {
-            // move player up
-            this.player.setDirection(1);
+            Log.d(TAG, "Person tapped the screen");
         }
         else if (userAction == MotionEvent.ACTION_UP) {
-            // move player down
-            this.player.setDirection(0);
+            Log.d(TAG, "Person lifted finger");
         }
 
         return true;

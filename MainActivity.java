@@ -1,6 +1,4 @@
-package com.akshdeep.tappyproject2;
-
-
+package com.akshdeep.tappyproject;
 
 import android.graphics.Point;
 import android.support.v7.app.AppCompatActivity;
