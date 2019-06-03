@@ -1,4 +1,4 @@
-package com.akshdeep.tappyproject2;
+package com.akshdeep.tappyproject;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -6,60 +6,65 @@ import android.graphics.BitmapFactory;
 import android.graphics.Rect;
 
 public class Enemy {
-    int xPosition;
-    int yPosition;
-    int direction;
-    Bitmap image;
 
-    private Rect hitBox;
+    // PROPERTIES:
+    // Image
+    // Hitbox
+    private Bitmap image;
+    private Rect hitbox;
+
+    private int xPosition;
+    private int yPosition;
 
     public Enemy(Context context, int x, int y) {
-        this.image = BitmapFactory.decodeResource(context.getResources(), R.drawable.alien_ship2);
+        // 1. set up the initial position of the Enemy
         this.xPosition = x;
         this.yPosition = y;
 
-        this.hitBox = new Rect(this.xPosition, this.yPosition, this.xPosition + this.image.getWidth(), this.yPosition + this.image.getHeight());
+        // 2. Set the default image - all enemies have same image
+        this.image = BitmapFactory.decodeResource(context.getResources(), R.drawable.alien_ship2);
+
+        // 3. Set the default hitbox - all enemies have same hitbox
+        this.hitbox = new Rect(
+                this.xPosition,
+                this.yPosition,
+                this.xPosition + this.image.getWidth(),
+                this.yPosition + this.image.getHeight()
+        );
     }
 
-    public void updateEnemyPosition() {
-        this.xPosition = this.xPosition - 15;
+    // Getter and setters
+    // Autogenerate this by doing Right Click --> Generate --> Getter&Setter
 
-        // update the position of the hitbox
-        this.hitBox.left = this.xPosition;
-        this.hitBox.right = this.xPosition + this.image.getWidth();
-        this.updateHitbox();
+    public Bitmap getImage() {
+        return image;
     }
 
-    public void updateHitbox() {
-        // update the position of the hitbox
-        this.hitBox.top = this.yPosition;
-        this.hitBox.left = this.xPosition;
-        this.hitBox.right = this.xPosition + this.image.getWidth();
-        this.hitBox.bottom = this.yPosition + this.image.getHeight();
+    public void setImage(Bitmap image) {
+        this.image = image;
     }
 
     public Rect getHitbox() {
-        return this.hitBox;
+        return hitbox;
     }
 
-
-    public void setXPosition(int x) {
-        this.xPosition = x;
-        this.updateHitbox();
-    }
-    public void setYPosition(int y) {
-        this.yPosition = y;
-        this.updateHitbox();
-    }
-    public int getXPosition() {
-        return this.xPosition;
-    }
-    public int getYPosition() {
-        return this.yPosition;
+    public void setHitbox(Rect hitbox) {
+        this.hitbox = hitbox;
     }
 
-    public Bitmap getBitmap() {
-        return this.image;
+    public int getxPosition() {
+        return xPosition;
     }
 
+    public void setxPosition(int xPosition) {
+        this.xPosition = xPosition;
+    }
+
+    public int getyPosition() {
+        return yPosition;
+    }
+
+    public void setyPosition(int yPosition) {
+        this.yPosition = yPosition;
+    }
 }
