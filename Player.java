@@ -1,4 +1,4 @@
-package com.akshdeep.tappyproject2;
+package com.akshdeep.tappyproject;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -6,71 +6,62 @@ import android.graphics.BitmapFactory;
 import android.graphics.Rect;
 
 public class Player {
-    int xPosition;
-    int yPosition;
-    int direction = -1;              // -1 = not moving, 0 = down, 1 = up
-    Bitmap playerImage;
 
-    private Rect hitBox;
+    // PROPERTIES
+    private Bitmap image;
+    private Rect hitbox;
+
+    private int xPosition;
+    private int yPosition;
 
     public Player(Context context, int x, int y) {
-        this.playerImage = BitmapFactory.decodeResource(context.getResources(), R.drawable.player_ship);
+        // 1. set up the initial position of the Enemy
         this.xPosition = x;
         this.yPosition = y;
-        this.hitBox = new Rect(this.xPosition, this.yPosition, this.xPosition + this.playerImage.getWidth(), this.yPosition + this.playerImage.getHeight());
 
+        // 2. Set the default image - all enemies have same image
+        this.image = BitmapFactory.decodeResource(context.getResources(), R.drawable.player_ship);
+
+        // 3. Set the default hitbox - all enemies have same hitbox
+        this.hitbox = new Rect(
+                this.xPosition,
+                this.yPosition,
+                this.xPosition + this.image.getWidth(),
+                this.yPosition + this.image.getHeight()
+        );
     }
 
-    public void updatePlayerPosition() {
-        if (this.direction == 0) {
-            // move down
-            this.yPosition = this.yPosition - 15;
-        }
-        else if (this.direction == 1) {
-            // move up
-            this.yPosition = this.yPosition + 15;
-        }
 
-        // update the position of the hitbox
-        this.updateHitbox();
+    // GETTER AND SETTER METHODS
+    public Bitmap getImage() {
+        return image;
     }
 
-    public void updateHitbox() {
-        // update the position of the hitbox
-        this.hitBox.top = this.yPosition;
-        this.hitBox.left = this.xPosition;
-        this.hitBox.right = this.xPosition + this.playerImage.getWidth();
-        this.hitBox.bottom = this.yPosition + this.playerImage.getHeight();
+    public void setImage(Bitmap image) {
+        this.image = image;
     }
 
     public Rect getHitbox() {
-        return this.hitBox;
+        return hitbox;
     }
 
-    public void setXPosition(int x) {
-        this.xPosition = x;
-        this.updateHitbox();
-    }
-    public void setYPosition(int y) {
-        this.yPosition = y;
-        this.updateHitbox();
-    }
-    public int getXPosition() {
-        return this.xPosition;
-    }
-    public int getYPosition() {
-        return this.yPosition;
+    public void setHitbox(Rect hitbox) {
+        this.hitbox = hitbox;
     }
 
-    /**
-     * Sets the direction of the player
-     * @param i     0 = down, 1 = up
-     */
-    public void setDirection(int i) {
-        this.direction = i;
-    }
-    public Bitmap getBitmap() {
-        return this.playerImage;
+    public int getxPosition() {
+        return xPosition;
     }
 
+    public void setxPosition(int xPosition) {
+        this.xPosition = xPosition;
+    }
+
+    public int getyPosition() {
+        return yPosition;
+    }
+
+    public void setyPosition(int yPosition) {
+        this.yPosition = yPosition;
+    }
 }

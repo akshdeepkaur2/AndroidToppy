@@ -1,12 +1,9 @@
 package com.akshdeep.tappyproject;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Point;
 import android.graphics.Rect;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -47,9 +44,12 @@ public class GameEngine extends SurfaceView implements Runnable {
     // ----------------------------
 
     // Player variables
-    Bitmap playerImage;
-    Rect playerHitbox;
-    Point playerPos;    // (left,top) of the player
+//    Bitmap playerImage;
+//    Rect playerHitbox;
+//    Point playerPos;    // (left,top) of the player
+
+
+    Player player;
 
     // Enemy variables
     Enemy enemy1;
@@ -81,19 +81,10 @@ public class GameEngine extends SurfaceView implements Runnable {
         // ----------------
         // PLAYER SETUP
         // ----------------
-        this.playerImage = BitmapFactory.decodeResource(context.getResources(), R.drawable.player_ship);
+        int initialPlayerX = 100;
+        int initialPlayerY = 120;
+        this.player = new Player(context,initialPlayerX, initialPlayerY);
 
-        // setup the initial position of player
-        this.playerPos = new Point();
-        this.playerPos.x = 100;
-        this.playerPos.y = 120;
-
-        // setup the hitbox
-        this.playerHitbox = new Rect(
-                this.playerPos.x,
-                this.playerPos.y,
-                this.playerPos.x+this.playerImage.getWidth(),
-                this.playerPos.y + playerImage.getHeight());
 
         // ----------------
         // ENEMY SETUP
@@ -157,16 +148,17 @@ public class GameEngine extends SurfaceView implements Runnable {
     public void updatePositions() {
         // @TODO: Update position of player
         // 1. move the player
-        this.playerPos.x = this.playerPos.x + PLAYER_SPEED;
+        this.player.setxPosition(this.player.getxPosition() + PLAYER_SPEED);
+
         // 2. move the hitbox
-        this.playerHitbox.left = this.playerHitbox.left + PLAYER_SPEED;
-        this.playerHitbox.right = this.playerHitbox.right + PLAYER_SPEED;
+        this.player.getHitbox().left = this.player.getHitbox().left + PLAYER_SPEED;
+        this.player.getHitbox().right = this.player.getHitbox().right + PLAYER_SPEED;
 
         // @TODO: Update position of enemy ships
 
 
         // @TODO: Collision detection between player and enemy
-        if (playerHitbox.intersect(this.enemy1.getHitbox())) {
+        if (this.player.getHitbox().intersect(this.enemy1.getHitbox())) {
             Log.d(TAG, "COLLISION!!!!!");
             this.lives = this.lives - 1;
             Log.d(TAG, "Lives remaining: " + this.lives);
@@ -178,16 +170,17 @@ public class GameEngine extends SurfaceView implements Runnable {
                 return;
             }
 
-
             // restart player from starting position
-            this.playerPos.x = 100;
-            this.playerPos.y = 120;
+            this.player.setxPosition(100);
+            this.player.setyPosition(120);
 
-            // restart hitbox
-            this.playerHitbox.left = this.playerPos.x;
-            this.playerHitbox.top = this.playerPos.y;
-            this.playerHitbox.right = this.playerPos.x+this.playerImage.getWidth();
-            this.playerHitbox.bottom = this.playerPos.y + playerImage.getHeight();
+            Rect hitbox = new Rect(this.player.getxPosition(),
+                    this.player.getyPosition(),
+                    this.player.getxPosition() + this.player.getImage().getWidth(),
+                    this.player.getyPosition() + this.player.getImage().getHeight()
+            );
+
+            this.player.setHitbox(hitbox);
         }
 
     }
@@ -204,7 +197,8 @@ public class GameEngine extends SurfaceView implements Runnable {
 
 
             //@TODO: Draw the player
-            canvas.drawBitmap(playerImage, this.playerPos.x, this.playerPos.y, paintbrush);
+            canvas.drawBitmap(this.player.getImage(), this.player.getxPosition(), this.player.getyPosition(), paintbrush);
+
 
             //@TODO: Draw the enemy
 
@@ -222,12 +216,13 @@ public class GameEngine extends SurfaceView implements Runnable {
             paintbrush.setStrokeWidth(5);
 
             // 2. draw the hitbox
-            canvas.drawRect(this.playerHitbox.left,
-                    this.playerHitbox.top,
-                    this.playerHitbox.right,
-                    this.playerHitbox.bottom,
+            canvas.drawRect(this.player.getHitbox().left,
+                    this.player.getHitbox().top,
+                    this.player.getHitbox().right,
+                    this.player.getHitbox().bottom,
                     paintbrush
             );
+
 
             // Draw enemy hitbox - refactored to use Enemy object
             paintbrush.setColor(Color.RED);
